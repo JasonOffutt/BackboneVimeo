@@ -1,0 +1,9 @@
+﻿
+
+li {
+    display: block;
+    float: left;
+    list-style-type: none;
+    padding: 5px;
+    margin: 0px;
+}
