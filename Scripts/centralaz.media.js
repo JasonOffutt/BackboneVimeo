@@ -88,9 +88,9 @@
         // Route table
         routes: {
             "": "index",
-            "home": "index",
-            "message/:id": "message",
-            "latest": "latest"
+            "/home": "index",
+            "/message/:id": "message",
+            "/latest": "latest"
         },
 
         // Controller constructor
