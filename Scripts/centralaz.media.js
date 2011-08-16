@@ -1,173 +1,129 @@
-﻿/// <reference path="jquery-1.6-vsdoc.js" />
-/// <reference path="jQuery.tmpl.js" />
-/// <reference path="underscore.js" />
-/// <reference path="backbone.js" />
-
-(function () {
-    // Video model class declaration
-    var Video = Backbone.Model.extend({
-        initialize: function () {
-            this.set({ htmlID: "video_" + this.id });
+﻿(function () {
+    var IndexView, MediaApp, MessageView, Video, VideoCollection;
+    var __hasProp = Object.prototype.hasOwnProperty, __extends = function (child, parent) {
+        for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
+        function ctor() { this.constructor = child; }
+        ctor.prototype = parent.prototype;
+        child.prototype = new ctor;
+        child.__super__ = parent.prototype;
+        return child;
+    };
+    Video = (function () {
+        __extends(Video, Backbone.Model);
+        function Video() {
+            Video.__super__.constructor.apply(this, arguments);
         }
-    });
-
-    // Custom collection class declaration (e.g. - public class VideoCollection : List<Video>)
-    var VideoCollection = Backbone.Collection.extend({
-        // Typing collection to model
-        model: Video,
-
-        // Allows Backbone collection implementation to keep videos ordered, etc
-        comparator: function (item) {
+        Video.prototype.initialize = function () {
+            return this.set({
+                htmlID: "video_" + this.id
+            });
+        };
+        return Video;
+    })();
+    VideoCollection = (function () {
+        __extends(VideoCollection, Backbone.Collection);
+        function VideoCollection() {
+            VideoCollection.__super__.constructor.apply(this, arguments);
+        }
+        VideoCollection.prototype.initialize = function () {
+            return this.model = Video;
+        };
+        VideoCollection.prototype.comparator = function (item) {
             return item.get('id');
+        };
+        return VideoCollection;
+    })();
+    IndexView = (function () {
+        __extends(IndexView, Backbone.View);
+        function IndexView() {
+            this.container = "#main";
+            this.indexTemplate = "#vimeo-template";
+            IndexView.__super__.constructor.apply(this, arguments);
         }
-    });
-
-    // Index view class declaration
-    var IndexView = Backbone.View.extend({
-        // Private variables
-        _container: "#main",
-        _indexTemplate: "#vimeo-template",
-
-        // Constructor
-        initialize: function (options) { },
-
-        // Views know how to render themselves. I've chosen to use jQuery.tmpl over underscore here...
-        render: function () {
-            var $main = $(this._container);
-            var $template = $(this._indexTemplate);
-            var jsonData = this.model.toJSON();
-
-            $main.fadeOut("fast", function () {
+        IndexView.prototype.render = function () {
+            var $main, $template, jsonData;
+            $main = $(this.container);
+            $template = $(this.indexTemplate);
+            jsonData = this.model.toJSON();
+            return $main.fadeOut("fast", function () {
+                var $ul;
                 $main.empty();
-                var $ul = $("<ul></ul>");
+                $ul = $("<ul />");
                 $template.tmpl(jsonData).appendTo($ul);
                 $ul.appendTo($main);
-                $main.fadeIn("fast");
+                return $main.fadeIn("fast");
             });
-
-            return this;
+        };
+        return IndexView;
+    })();
+    MessageView = (function () {
+        __extends(MessageView, Backbone.View);
+        function MessageView() {
+            this.container = "#main";
+            this.itemTemplate = "#message-template";
+            MessageView.__super__.constructor.apply(this, arguments);
         }
-    });
-
-    // Message view class declaration
-    var MessageView = Backbone.View.extend({
-        _container: "#main",
-        _itemTemplate: "#message-template",
-        initialize: function (options) {
-            this.videoEmbed = options.videoEmbed
-        },
-        render: function () {
-            var $main = $(this._container);
-            var $template = $(this._itemTemplate);
-            var jsonData = this.model.toJSON();
-
-            $main.fadeOut("fast", function () {
+        MessageView.prototype.initialize = function (options) {
+            return this.videoEmbed = options.videoEmbed;
+        };
+        MessageView.prototype.render = function () {
+            var $main, $template, jsonData;
+            $main = $(this.container);
+            $template = $(this.itemTemplate);
+            jsonData = this.model.toJSON();
+            return $main.fadeOut("fast", function () {
                 $main.empty();
                 $template.tmpl(jsonData).appendTo($main);
-                $main.fadeIn("fast");
+                return $main.fadeIn("fast");
             });
-
-            return this;
+        };
+        return MessageView;
+    })();
+    MediaApp = (function () {
+        __extends(MediaApp, Backbone.Controller);
+        function MediaApp() {
+            MediaApp.__super__.constructor.apply(this, arguments);
         }
-    });
-
-    // Controller class declaration
-    var MediaApp = Backbone.Controller.extend({
-        // Private members to hold view instances
-        _index: null,
-        _message: null,
-
-        // Data containers
-        _data: null,
-        _apiUrl: "http://vimeo.com/api/v2/centralaz/videos.json?callback=?",
-
-        // Model object instances
-        _videos: null,
-        _currentVideo: null,
-
-        // Route table
-        routes: {
+        MediaApp.prototype.routes = {
             "": "index",
             "/home": "index",
             "/message/:id": "message",
             "/latest": "latest"
-        },
-
-        // Controller constructor
-        initialize: function (options) {
-            var controller = this;
-
-            if (this._videos === null) {
-                $.getJSON(this._apiUrl, function (data) {
-                    controller._data = data;
-                    controller._videos = new VideoCollection(data);
-                    controller._index = new IndexView({ model: controller._videos });
-                    Backbone.history.loadUrl();
-                });
-
-                return this;
-            }
-
-            return this;
-        },
-
-        // Index action (default view)
-        index: function () {
-            if (this._index !== null) {
-                this._index.render();
-            }
-        },
-
-        // Message action (#message/{id})
-        message: function (id) {
-            if (this._videos !== null) {
-                this._currentVideo = this._videos.get(id);
-                this._message = new MessageView({ model: this._currentVideo });
-                this._message.render();
-            }
-        },
-
-        // Action to get the latest video (#latest)
-        latest: function () {
-            if (this._videos !== null) {
-                this._currentVideo = this._videos.at(0);
-                this._message = new MessageView({ model: this._currentVideo });
-                this._message.render();
-            }
-        }
+        };
+        MediaApp.prototype.initialize = function (options) {
+            this.message = null;
+            this.currentVideo = null;
+            this.videos = options.collection;
+            this.index = new IndexView({
+                model: this.videos
+            });
+            return Backbone.history.loadUrl();
+        };
+        MediaApp.prototype.index = function () {
+            return this.index.render();
+        };
+        MediaApp.prototype.message = function (id) {
+            this.currentVideo = this.videos.get(id);
+            this.message = new MessageView({
+                model: this.currentVideo
+            });
+            return this.message.render();
+        };
+        MediaApp.prototype.latest = function () {
+            this.currentVideo = this.videos.at(0);
+            this.message = new MessageView({
+                model: this.currentVideo
+            });
+            return this.message.render();
+        };
+        return MediaApp;
+    })();
+    $(function () {
+        return $.getJSON("http://vimeo.com/api/v2/centralaz/videos.json?callback=?", function (data) {
+            window.mediaApp = new MediaApp({
+                collection: new VideoCollection(data)
+            });
+            return Backbone.history.start();
+        });
     });
-
-    // Register instance of controller globally
-    window.mediaApp = new MediaApp();
-
-    // Backbone's magical/revolutionary history recording
-    Backbone.history.start();
-})();
-
-
-/* sample json item from Vimeo Simple API
-{
-	"id":"23504350",
-	"title":"The Legacy of Words",
-	"description":"A Message by Lisa Jernigan",
-	"url":"http:\/\/vimeo.com\/23504350",
-	"upload_date":"2011-05-09 18:00:06",
-	"mobile_url":"http:\/\/vimeo.com\/m\/#\/23504350",
-	"thumbnail_small":"http:\/\/b.vimeocdn.com\/ts\/153\/079\/153079137_100.jpg",
-	"thumbnail_medium":"http:\/\/b.vimeocdn.com\/ts\/153\/079\/153079137_200.jpg",
-	"thumbnail_large":"http:\/\/b.vimeocdn.com\/ts\/153\/079\/153079137_640.jpg",
-	"user_name":"Central Christian",
-	"user_url":"http:\/\/vimeo.com\/centralaz",
-	"user_portrait_small":"http:\/\/b.vimeocdn.com\/ps\/165\/692\/1656923_30.jpg",
-	"user_portrait_medium":"http:\/\/b.vimeocdn.com\/ps\/165\/692\/1656923_75.jpg",
-	"user_portrait_large":"http:\/\/b.vimeocdn.com\/ps\/165\/692\/1656923_100.jpg",
-	"user_portrait_huge":"http:\/\/b.vimeocdn.com\/ps\/165\/692\/1656923_300.jpg",
-	"stats_number_of_likes":"0",
-	"stats_number_of_plays":"0",
-	"stats_number_of_comments":0,
-	"duration":"2315",
-	"width":"640",
-	"height":"360",
-	"tags":""
-}
-*/
+}).call(this);
